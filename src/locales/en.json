@@ -1,0 +1,21 @@
+{
+  "fillDetails": "Fill in the transfer details",
+  "guestName": "Guest Name",
+  "pickup": "Pickup Location",
+  "dropoff": "Drop-off Location",
+  "datetime": "Date & Time",
+  "vehicleType": "Vehicle Type",
+  "taxi": "Taxi",
+  "van": "Van",
+  "notes": "Notes",
+  "bookTransfer": "Book Transfer",
+  "noPastBooking": "You cannot book a transfer in the past.",
+  "adminPanel": "Admin Panel",
+  "dashboard": "Dashboard Calendar",
+  "addTransfer": "Add a Transfer",
+  "users": "Users",
+  "export": "Export",
+  "logout": "Logout",
+  "addNewTransfer": "Add New Transfer",
+  "registeredUsers": "Registered Users"
+}

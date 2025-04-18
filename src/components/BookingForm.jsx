@@ -1,6 +1,10 @@
 import React, { useState } from "react";
+import routes from "../data/routes";
 
-export default function BookingForm({ onSubmit }) {
+export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
+  const isHotel = currentUser?.role === "Hotel" || currentUser?.role === "admin";
+  const isAgency = currentUser?.role === "Travel Agency" || currentUser?.role === "admin";
+  const userRoutes = isAdmin ? routes : routes.filter(r => r.user === currentUser?.name);
   const [bookingType, setBookingType] = useState("Arrival");
   const [date, setDate] = useState("");
   const [pickupHour, setPickupHour] = useState("00");
@@ -19,6 +23,8 @@ export default function BookingForm({ onSubmit }) {
   const [countryCode, setCountryCode] = useState("+30");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [notes, setNotes] = useState("");
+
+
 
   const hours = Array.from({ length: 24 }, (_, i) =>
     i.toString().padStart(2, "0")
@@ -77,27 +83,53 @@ export default function BookingForm({ onSubmit }) {
         </div>
       </div>
 
+      {(isHotel || isAgency) && (
+  <div className="mb-4">
+    <label className="block font-medium mb-1">
+      {isHotel ? "Route" : "Select Route"}
+    </label>
+    <select
+      className="w-full p-2 border rounded"
+      onChange={(e) => console.log("Selected route:", e.target.value)}
+    >
+      <option value="">-- Select a Route --</option>
+      {userRoutes.map((route, index) => (
+        <option key={index} value={route.route || `${route.from} → ${route.to}`}>
+          {route.route || `${route.from} → ${route.to}`}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
+
+
       {/* Locations */}
-      <div className="mb-4">
-        <label className="block font-medium">Pickup Location</label>
-        <input
-          type="text"
-          value={pickupLocation}
-          onChange={(e) => setPickupLocation(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Heraklion Airport"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block font-medium">Drop-off Location</label>
-        <input
-          type="text"
-          value={dropoffLocation}
-          onChange={(e) => setDropoffLocation(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Hotel"
-        />
-      </div>
+      {isHotel && (
+  <>
+    <div className="mb-4">
+      <label className="block font-medium">Pickup Location</label>
+      <input
+        type="text"
+        value={pickupLocation}
+        onChange={(e) => setPickupLocation(e.target.value)}
+        className="w-full p-2 border rounded"
+        placeholder="Heraklion Airport"
+      />
+    </div>
+    <div className="mb-4">
+      <label className="block font-medium">Drop-off Location</label>
+      <input
+        type="text"
+        value={dropoffLocation}
+        onChange={(e) => setDropoffLocation(e.target.value)}
+        className="w-full p-2 border rounded"
+        placeholder="Hotel"
+      />
+    </div>
+  </>
+)}
+
 
       {/* Date */}
       <div className="mb-4">

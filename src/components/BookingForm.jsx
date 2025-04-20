@@ -68,7 +68,7 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
       <div className="mb-4">
         <label className="block font-medium mb-1">Booking Type</label>
         <div className="flex gap-4">
-          {["Arrival", "Departure", "Transfer"].map((type) => (
+          {["Arrival", "Departure", "Point-to-Point"].map((type) => (
             <label key={type} className="flex items-center gap-1">
               <input
                 type="radio"
@@ -83,7 +83,7 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
         </div>
       </div>
 
-      {(isHotel || isAgency) && (
+      {(isAgency) && (
   <div className="mb-4">
     <label className="block font-medium mb-1">
       {isHotel ? "Route" : "Select Route"}

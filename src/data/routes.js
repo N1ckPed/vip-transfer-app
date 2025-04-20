@@ -1,28 +1,4 @@
 const routes = [
-  // Hotel User: Creta Maris
-  {
-    user: "Creta Maris Hotel",
-    role: "hotel",
-    from: "Heraklion Airport",
-    to: "Creta Maris Hotel",
-    prices: {
-      Sedan: 45,
-      Vito: 60,
-      Van: 75
-    }
-  },
-  {
-    user: "Creta Maris Hotel",
-    role: "hotel",
-    from: "Creta Maris Hotel",
-    to: "Heraklion Airport",
-    prices: {
-      Sedan: 45,
-      Vito: 60,
-      Van: 75
-    }
-  },
-
   // Travel Agency: Daffis
   {
     user: "Daffis Travel",

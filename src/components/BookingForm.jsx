@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import routes from "../data/routes";
+import { getUsers } from "../services/userService";
 
 export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const isHotel = currentUser?.role === "Hotel";
   const isAgency = currentUser?.role === "Travel Agency";
-  const userRoutes = isAdmin ? routes : routes.filter(r => r.user === currentUser?.name);
+  const [assignableUsers, setAssignableUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const [bookingType, setBookingType] = useState("Arrival");
   const [date, setDate] = useState("");
@@ -29,10 +31,23 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
   const minutes = ["00", "15", "30", "45"];
 
+  useEffect(() => {
+    if (isAdmin) {
+      const all = getUsers();
+      const filtered = all.filter(u => u.role === "Hotel" || u.role === "Travel Agency");
+      setAssignableUsers(filtered);
+    }
+  }, [isAdmin]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const pickupTime = `${pickupHour}:${pickupMinute}`;
     const flightTime = `${flightHour}:${flightMinute}`;
+
+    // Determine who the booking is assigned to
+    const assignedUser = isAdmin
+      ? assignableUsers.find(u => u.id === Number(selectedUserId))
+      : currentUser;
 
     const bookingData = {
       bookingType,
@@ -49,38 +64,40 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
       phone: `${countryCode} ${phoneNumber}`,
       notes,
       route: selectedRoute || null,
+      hotel: assignedUser?.name || "Unknown",
+      userRole: assignedUser?.role || "Unknown"
     };
 
     console.log("✅ Booking submitted:", bookingData);
-    if (typeof onSubmit === "function") {
-      onSubmit(bookingData);
-    }
+    if (typeof onSubmit === "function") onSubmit(bookingData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 bg-white rounded-2xl shadow-md">
       <h2 className="text-xl font-semibold mb-4">Create Booking</h2>
 
-      {/* Booking Type */}
-      <div className="mb-4">
-        <label className="block font-medium mb-1">Booking Type</label>
-        <div className="flex gap-4">
-          {["Arrival", "Departure", "Transfer"].map((type) => (
-            <label key={type} className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="bookingType"
-                value={type}
-                checked={bookingType === type}
-                onChange={() => setBookingType(type)}
-              />
-              {type}
-            </label>
-          ))}
-        </div>
-      </div>
+      {isAdmin && (
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Assign to User</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={selectedUserId || ""}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+          >
+            <option value="">-- Select a User --</option>
+            {[...assignableUsers]
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((user) => (
+    <option key={user.id} value={user.id}>
+      {user.name} ({user.role})
+    </option>
+))}
 
-      {/* Route for Agency/Admin */}
+          </select>
+        </div>
+      )}
+
+      {/* Route field only for Agency and Admin */}
       {(isAgency || isAdmin) && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Select Route</label>
@@ -90,17 +107,23 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
             onChange={(e) => setSelectedRoute(e.target.value)}
           >
             <option value="">-- Select a Route --</option>
-            {userRoutes.map((route, index) => (
-              <option key={index} value={route.route}>
-                {route.route}
-              </option>
-            ))}
+            {routes
+  .filter((r) =>
+    isAdmin ? true : r.user === currentUser?.name
+  )
+  .sort((a, b) => a.route.localeCompare(b.route)) // 🔠 sort alphabetically
+  .map((route, index) => (
+    <option key={index} value={route.route}>
+      {route.route}
+    </option>
+  ))}
+
           </select>
         </div>
       )}
 
-      {/* Locations (for Hotel only) */}
-      {isHotel && (
+      {/* Hotel: pickup & dropoff */}
+      {(!isAgency || isAdmin) && (
         <>
           <div className="mb-4">
             <label className="block font-medium">Pickup Location</label>
@@ -125,7 +148,8 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </>
       )}
 
-      {/* Date */}
+      {/* Other fields... keep same structure as before */}
+      {/* ... Date */}
       <div className="mb-4">
         <label className="block font-medium">Date</label>
         <input
@@ -138,7 +162,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         />
       </div>
 
-      {/* Pickup Time */}
+      {/* Pickup time */}
       <div className="mb-4">
         <label className="block font-medium">Pickup Time</label>
         <div className="flex gap-2">
@@ -166,7 +190,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       </div>
 
-      {/* Optional Fields */}
+      {/* Optional flight number & room */}
       <div className="mb-4">
         <label className="block font-medium">Flight Number</label>
         <input
@@ -177,7 +201,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           placeholder="e.g. GR1234"
         />
       </div>
-
       <div className="mb-4">
         <label className="block font-medium">Room Number</label>
         <input
@@ -189,16 +212,17 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         />
       </div>
 
-      {/* Car Type */}
+      {/* Car type */}
       <div className="mb-4">
         <label className="block font-medium">Car Type</label>
         <select value={carType} onChange={(e) => setCarType(e.target.value)} className="w-full p-2 border rounded">
           <option value="Taxi">Taxi</option>
           <option value="Van">Van</option>
+          <option value="Sedan">Sedan</option>
         </select>
       </div>
 
-      {/* Passengers */}
+      {/* Passenger counts */}
       <div className="mb-4">
         <label className="block font-medium">Passengers</label>
         <div className="flex gap-4">
@@ -217,7 +241,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       </div>
 
-      {/* Customer Info */}
+      {/* Customer name & phone */}
       <div className="mb-4">
         <label className="block font-medium">Customer Name</label>
         <input
@@ -228,7 +252,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           placeholder="e.g. George Orwell"
         />
       </div>
-
       <div className="mb-4">
         <label className="block font-medium">Phone Number</label>
         <div className="flex gap-2">

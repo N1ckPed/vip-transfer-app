@@ -47,11 +47,15 @@ const handleBooking = (data) => {
   id: Date.now(),
   datetime: datetime.toISOString(),
   createdAt: now.toISOString(),
-  hotel: currentUser.role === 'admin' ? 'Admin'
-        : currentUser.role === 'Hotel' || currentUser.role === 'Travel Agency'
-          ? currentUser.name
-          : 'Unknown',
-  userRole: currentUser.role,
+  hotel: currentUser.role === 'admin' && data.hotel
+  ? data.hotel
+  : currentUser.name,
+
+userRole: currentUser.role === 'admin' && data.userRole
+  ? data.userRole
+  : currentUser.role,
+
+
 };
 
 

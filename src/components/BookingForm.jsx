@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import routes from "../data/routes";
 
-export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
-  const isHotel = currentUser?.role === "Hotel" || currentUser?.role === "admin";
-  const isAgency = currentUser?.role === "Travel Agency" || currentUser?.role === "admin";
+export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
+  const isHotel = currentUser?.role === "Hotel";
+  const isAgency = currentUser?.role === "Travel Agency";
   const userRoutes = isAdmin ? routes : routes.filter(r => r.user === currentUser?.name);
+
   const [bookingType, setBookingType] = useState("Arrival");
   const [date, setDate] = useState("");
   const [pickupHour, setPickupHour] = useState("00");
@@ -23,17 +24,13 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
   const [countryCode, setCountryCode] = useState("+30");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [notes, setNotes] = useState("");
+  const [selectedRoute, setSelectedRoute] = useState("");
 
-
-
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    i.toString().padStart(2, "0")
-  );
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
   const minutes = ["00", "15", "30", "45"];
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const pickupTime = `${pickupHour}:${pickupMinute}`;
     const flightTime = `${flightHour}:${flightMinute}`;
 
@@ -51,10 +48,10 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
       name: customerName,
       phone: `${countryCode} ${phoneNumber}`,
       notes,
+      route: selectedRoute || null,
     };
 
     console.log("✅ Booking submitted:", bookingData);
-
     if (typeof onSubmit === "function") {
       onSubmit(bookingData);
     }
@@ -68,7 +65,7 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
       <div className="mb-4">
         <label className="block font-medium mb-1">Booking Type</label>
         <div className="flex gap-4">
-          {["Arrival", "Departure", "Point-to-Point"].map((type) => (
+          {["Arrival", "Departure", "Transfer"].map((type) => (
             <label key={type} className="flex items-center gap-1">
               <input
                 type="radio"
@@ -83,53 +80,50 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
         </div>
       </div>
 
-      {(isAgency) && (
-  <div className="mb-4">
-    <label className="block font-medium mb-1">
-      {isHotel ? "Route" : "Select Route"}
-    </label>
-    <select
-      className="w-full p-2 border rounded"
-      onChange={(e) => console.log("Selected route:", e.target.value)}
-    >
-      <option value="">-- Select a Route --</option>
-      {userRoutes.map((route, index) => (
-        <option key={index} value={route.route || `${route.from} → ${route.to}`}>
-          {route.route || `${route.from} → ${route.to}`}
-        </option>
-      ))}
-    </select>
-  </div>
-)}
+      {/* Route for Agency/Admin */}
+      {(isAgency || isAdmin) && (
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Select Route</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={selectedRoute}
+            onChange={(e) => setSelectedRoute(e.target.value)}
+          >
+            <option value="">-- Select a Route --</option>
+            {userRoutes.map((route, index) => (
+              <option key={index} value={route.route}>
+                {route.route}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
-
-
-      {/* Locations */}
+      {/* Locations (for Hotel only) */}
       {isHotel && (
-  <>
-    <div className="mb-4">
-      <label className="block font-medium">Pickup Location</label>
-      <input
-        type="text"
-        value={pickupLocation}
-        onChange={(e) => setPickupLocation(e.target.value)}
-        className="w-full p-2 border rounded"
-        placeholder="Heraklion Airport"
-      />
-    </div>
-    <div className="mb-4">
-      <label className="block font-medium">Drop-off Location</label>
-      <input
-        type="text"
-        value={dropoffLocation}
-        onChange={(e) => setDropoffLocation(e.target.value)}
-        className="w-full p-2 border rounded"
-        placeholder="Hotel"
-      />
-    </div>
-  </>
-)}
-
+        <>
+          <div className="mb-4">
+            <label className="block font-medium">Pickup Location</label>
+            <input
+              type="text"
+              value={pickupLocation}
+              onChange={(e) => setPickupLocation(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="Heraklion Airport"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-medium">Drop-off Location</label>
+            <input
+              type="text"
+              value={dropoffLocation}
+              onChange={(e) => setDropoffLocation(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="Hotel"
+            />
+          </div>
+        </>
+      )}
 
       {/* Date */}
       <div className="mb-4">
@@ -204,7 +198,7 @@ export default function BookingForm({ onSubmit, isAdmin, currentUser }) {
         </select>
       </div>
 
-      {/* Passenger Counts */}
+      {/* Passengers */}
       <div className="mb-4">
         <label className="block font-medium">Passengers</label>
         <div className="flex gap-4">

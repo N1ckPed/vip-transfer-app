@@ -3,10 +3,15 @@ import routes from "../data/routes";
 import { getUsers } from "../services/userService";
 
 export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
-  const isHotel = currentUser?.role === "Hotel";
-  const isAgency = currentUser?.role === "Travel Agency";
   const [assignableUsers, setAssignableUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
+
+  const selectedUser = isAdmin
+    ? assignableUsers.find((u) => u.id === Number(selectedUserId))
+    : currentUser;
+
+  const isHotel = selectedUser?.role === "Hotel";
+  const isAgency = selectedUser?.role === "Travel Agency";
 
   const [bookingType, setBookingType] = useState("Arrival");
   const [date, setDate] = useState("");
@@ -34,7 +39,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   useEffect(() => {
     if (isAdmin) {
       const all = getUsers();
-      const filtered = all.filter(u => u.role === "Hotel" || u.role === "Travel Agency");
+      const filtered = all.filter((u) => u.role === "Hotel" || u.role === "Travel Agency");
       setAssignableUsers(filtered);
     }
   }, [isAdmin]);
@@ -44,9 +49,8 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
     const pickupTime = `${pickupHour}:${pickupMinute}`;
     const flightTime = `${flightHour}:${flightMinute}`;
 
-    // Determine who the booking is assigned to
     const assignedUser = isAdmin
-      ? assignableUsers.find(u => u.id === Number(selectedUserId))
+      ? assignableUsers.find((u) => u.id === Number(selectedUserId))
       : currentUser;
 
     const bookingData = {
@@ -65,7 +69,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
       notes,
       route: selectedRoute || null,
       hotel: assignedUser?.name || "Unknown",
-      userRole: assignedUser?.role || "Unknown"
+      userRole: assignedUser?.role || "Unknown",
     };
 
     console.log("✅ Booking submitted:", bookingData);
@@ -86,19 +90,39 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           >
             <option value="">-- Select a User --</option>
             {[...assignableUsers]
-  .sort((a, b) => a.name.localeCompare(b.name))
-  .map((user) => (
-    <option key={user.id} value={user.id}>
-      {user.name} ({user.role})
-    </option>
-))}
-
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.role})
+                </option>
+              ))}
           </select>
         </div>
       )}
 
-      {/* Route field only for Agency and Admin */}
-      {(isAgency || isAdmin) && (
+      {/* Show Booking Type (radio) for Hotel only */}
+      {isHotel && (
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Booking Type</label>
+          <div className="flex gap-4">
+            {["Arrival", "Departure", "Transfer"].map((type) => (
+              <label key={type} className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="bookingType"
+                  value={type}
+                  checked={bookingType === type}
+                  onChange={() => setBookingType(type)}
+                />
+                {type}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Route (Travel Agency only) */}
+      {isAgency && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Select Route</label>
           <select
@@ -108,22 +132,21 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           >
             <option value="">-- Select a Route --</option>
             {routes
-  .filter((r) =>
-    isAdmin ? true : r.user === currentUser?.name
-  )
-  .sort((a, b) => a.route.localeCompare(b.route)) // 🔠 sort alphabetically
-  .map((route, index) => (
-    <option key={index} value={route.route}>
-      {route.route}
-    </option>
-  ))}
-
+              .filter((r) =>
+                isAdmin ? r.user === selectedUser?.name : r.user === currentUser?.name
+              )
+              .sort((a, b) => a.route.localeCompare(b.route))
+              .map((route, index) => (
+                <option key={index} value={route.route}>
+                  {route.route}
+                </option>
+              ))}
           </select>
         </div>
       )}
 
-      {/* Hotel: pickup & dropoff */}
-      {(!isAgency || isAdmin) && (
+      {/* Hotel fields (pickup/dropoff) only when Hotel or Admin assigning to Hotel */}
+      {isHotel && (
         <>
           <div className="mb-4">
             <label className="block font-medium">Pickup Location</label>
@@ -148,8 +171,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </>
       )}
 
-      {/* Other fields... keep same structure as before */}
-      {/* ... Date */}
+      {/* Date */}
       <div className="mb-4">
         <label className="block font-medium">Date</label>
         <input
@@ -162,16 +184,32 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         />
       </div>
 
-      {/* Pickup time */}
+      {/* Pickup Time */}
       <div className="mb-4">
         <label className="block font-medium">Pickup Time</label>
         <div className="flex gap-2">
-          <select value={pickupHour} onChange={(e) => setPickupHour(e.target.value)} className="p-2 border rounded">
-            {hours.map((h) => <option key={h} value={h}>{h}</option>)}
+          <select
+            value={pickupHour}
+            onChange={(e) => setPickupHour(e.target.value)}
+            className="p-2 border rounded"
+          >
+            {hours.map((h) => (
+              <option key={h} value={h}>
+                {h}
+              </option>
+            ))}
           </select>
           <span>:</span>
-          <select value={pickupMinute} onChange={(e) => setPickupMinute(e.target.value)} className="p-2 border rounded">
-            {minutes.map((m) => <option key={m} value={m}>{m}</option>)}
+          <select
+            value={pickupMinute}
+            onChange={(e) => setPickupMinute(e.target.value)}
+            className="p-2 border rounded"
+          >
+            {minutes.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -180,17 +218,33 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
       <div className="mb-4">
         <label className="block font-medium">Flight Time</label>
         <div className="flex gap-2">
-          <select value={flightHour} onChange={(e) => setFlightHour(e.target.value)} className="p-2 border rounded">
-            {hours.map((h) => <option key={h} value={h}>{h}</option>)}
+          <select
+            value={flightHour}
+            onChange={(e) => setFlightHour(e.target.value)}
+            className="p-2 border rounded"
+          >
+            {hours.map((h) => (
+              <option key={h} value={h}>
+                {h}
+              </option>
+            ))}
           </select>
           <span>:</span>
-          <select value={flightMinute} onChange={(e) => setFlightMinute(e.target.value)} className="p-2 border rounded">
-            {minutes.map((m) => <option key={m} value={m}>{m}</option>)}
+          <select
+            value={flightMinute}
+            onChange={(e) => setFlightMinute(e.target.value)}
+            className="p-2 border rounded"
+          >
+            {minutes.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Optional flight number & room */}
+      {/* Flight number & room */}
       <div className="mb-4">
         <label className="block font-medium">Flight Number</label>
         <input
@@ -215,28 +269,50 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
       {/* Car type */}
       <div className="mb-4">
         <label className="block font-medium">Car Type</label>
-        <select value={carType} onChange={(e) => setCarType(e.target.value)} className="w-full p-2 border rounded">
+        <select
+          value={carType}
+          onChange={(e) => setCarType(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
           <option value="Taxi">Taxi</option>
           <option value="Van">Van</option>
           <option value="Sedan">Sedan</option>
         </select>
       </div>
 
-      {/* Passenger counts */}
+      {/* Passengers */}
       <div className="mb-4">
         <label className="block font-medium">Passengers</label>
         <div className="flex gap-4">
           <div>
             <label className="text-sm">Adults</label>
-            <input type="number" min="0" value={adults} onChange={(e) => setAdults(Number(e.target.value))} className="w-20 p-2 border rounded" />
+            <input
+              type="number"
+              min="0"
+              value={adults}
+              onChange={(e) => setAdults(Number(e.target.value))}
+              className="w-20 p-2 border rounded"
+            />
           </div>
           <div>
             <label className="text-sm">Kids</label>
-            <input type="number" min="0" value={kids} onChange={(e) => setKids(Number(e.target.value))} className="w-20 p-2 border rounded" />
+            <input
+              type="number"
+              min="0"
+              value={kids}
+              onChange={(e) => setKids(Number(e.target.value))}
+              className="w-20 p-2 border rounded"
+            />
           </div>
           <div>
             <label className="text-sm">Babies</label>
-            <input type="number" min="0" value={babies} onChange={(e) => setBabies(Number(e.target.value))} className="w-20 p-2 border rounded" />
+            <input
+              type="number"
+              min="0"
+              value={babies}
+              onChange={(e) => setBabies(Number(e.target.value))}
+              className="w-20 p-2 border rounded"
+            />
           </div>
         </div>
       </div>

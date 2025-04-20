@@ -62,7 +62,7 @@ const events = bookings
 
   return (
     <div className="p-4 bg-white shadow rounded overflow-x-auto">
-      <h2 className="text-xl font-semibold mb-4 text-center">📅 Admin Booking Calendar</h2>
+      <h2 className="text-xl font-semibold mb-4 text-center">📅 Booking Calendar</h2>
       <div className="min-w-[300px] md:min-w-full">
         <Calendar
           localizer={localizer}

@@ -42,7 +42,7 @@ function App() {
   const handleBooking = (data) => {
     const now = new Date();
     const datetime = new Date(`${data.date}T${data.pickupTime}`);
-    const refNo = `REF-${Math.floor(100000 + Math.random() * 900000)}`;
+    const refNo = `${Date.now()}`;
 
     const newBooking = {
       ...data,

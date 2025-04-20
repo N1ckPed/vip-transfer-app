@@ -5,14 +5,12 @@ import { getUsers } from "../services/userService";
 export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const [assignableUsers, setAssignableUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
-
   const selectedUser = isAdmin
     ? assignableUsers.find((u) => u.id === Number(selectedUserId))
     : currentUser;
 
   const isHotel = selectedUser?.role === "Hotel";
   const isAgency = selectedUser?.role === "Travel Agency";
-
   const [bookingType, setBookingType] = useState("Arrival");
   const [date, setDate] = useState("");
   const [pickupHour, setPickupHour] = useState("00");
@@ -32,9 +30,10 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedRoute, setSelectedRoute] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("Clients Directly");
 
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
-  const minutes = ["00", "15", "30", "45"];
+  const minutes = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
 
   useEffect(() => {
     if (isAdmin) {
@@ -68,6 +67,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
       phone: `${countryCode} ${phoneNumber}`,
       notes,
       route: selectedRoute || null,
+      paymentMethod: isHotel ? paymentMethod : null,
       hotel: assignedUser?.name || "Unknown",
       userRole: assignedUser?.role || "Unknown",
     };
@@ -75,7 +75,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
     console.log("✅ Booking submitted:", bookingData);
     if (typeof onSubmit === "function") onSubmit(bookingData);
   };
-
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 bg-white rounded-2xl shadow-md">
       <h2 className="text-xl font-semibold mb-4">Create Booking</h2>
@@ -100,7 +99,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       )}
 
-      {/* Show Booking Type (radio) for Hotel only */}
       {isHotel && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Booking Type</label>
@@ -121,7 +119,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       )}
 
-      {/* Route (Travel Agency only) */}
       {isAgency && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Select Route</label>
@@ -145,7 +142,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       )}
 
-      {/* Hotel fields (pickup/dropoff) only when Hotel or Admin assigning to Hotel */}
       {isHotel && (
         <>
           <div className="mb-4">
@@ -170,6 +166,8 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           </div>
         </>
       )}
+
+      
 
       {/* Date */}
       <div className="mb-4">
@@ -244,6 +242,21 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       </div>
 
+      {/* ✅ Payment Method only if Hotel user */}
+      {isHotel && (
+        <div className="mb-4">
+          <label className="block font-medium">Payment Method</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          >
+            <option value="Clients Directly">Clients Directly</option>
+            <option value="Accounting Office">Accounting Office</option>
+          </select>
+        </div>
+      )}
+
       {/* Flight number & room */}
       <div className="mb-4">
         <label className="block font-medium">Flight Number</label>
@@ -305,7 +318,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
             />
           </div>
           <div>
-            <label className="text-sm">Babies</label>
+            <label className="text-sm">Infants</label>
             <input
               type="number"
               min="0"
@@ -347,6 +360,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           />
         </div>
       </div>
+
 
       {/* Notes */}
       <div className="mb-4">

@@ -224,6 +224,12 @@ function App() {
                       <strong>{b.userRole === 'Travel Agency' ? 'Travel Agency:' : 'Hotel:'}</strong> {b.hotel}
                     </Typography>
                   )}
+                  {b.userRole === "Hotel" && b.paymentMethod && (
+                    <Typography variant="body2">
+                      <strong>Payment Method:</strong> {b.paymentMethod}
+                    </Typography>
+                  )}
+
 
                   <Typography variant="body2"><strong>Pickup Location:</strong> {b.pickupLocation}</Typography>
                   <Typography variant="body2"><strong>Drop-off Location:</strong> {b.dropoffLocation}</Typography>

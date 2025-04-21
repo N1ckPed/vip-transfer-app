@@ -231,8 +231,17 @@ function App() {
                   )}
 
 
-                  <Typography variant="body2"><strong>Pickup Location:</strong> {b.pickupLocation}</Typography>
-                  <Typography variant="body2"><strong>Drop-off Location:</strong> {b.dropoffLocation}</Typography>
+                  {b.userRole === "Travel Agency" ? (
+                    <Typography variant="body2">
+                      <strong>Route:</strong> {b.route || "—"}
+                    </Typography>
+                  ) : (
+                    <>
+                      <Typography variant="body2"><strong>Pickup Location:</strong> {b.pickupLocation}</Typography>
+                      <Typography variant="body2"><strong>Drop-off Location:</strong> {b.dropoffLocation}</Typography>
+                    </>
+                  )}
+
                   <Typography variant="body2"><strong>Pickup Time:</strong> {b.pickupTime}</Typography>
 
                   {isAdmin && (

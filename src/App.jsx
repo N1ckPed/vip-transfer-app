@@ -16,6 +16,7 @@ import {
   TextField
 } from '@mui/material';
 import { getBookings, saveBookings } from './services/dataService';
+import { getUsers } from './services/userService';
 
 function App() {
   const [bookings, setBookings] = useState([]);
@@ -56,6 +57,9 @@ function App() {
       userRole: currentUser.role === 'admin' && data.userRole
         ? data.userRole
         : currentUser.role,
+      priceHotel: data.priceHotel || null,
+      priceDriver: data.priceDriver || null,
+      driver: data.driver || null,
     };
 
     setBookings((prev) => {
@@ -230,7 +234,6 @@ function App() {
                     </Typography>
                   )}
 
-
                   {b.userRole === "Travel Agency" ? (
                     <Typography variant="body2">
                       <strong>Route:</strong> {b.route || "—"}
@@ -245,15 +248,63 @@ function App() {
                   <Typography variant="body2"><strong>Pickup Time:</strong> {b.pickupTime}</Typography>
 
                   {isAdmin && (
-                    <TextField
-                      label="Driver"
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                      sx={{ mt: 2 }}
-                      value={b.driver || ''}
-                      onChange={(e) => handleDriverChange(b.id, e.target.value)}
-                    />
+                    <>
+                      <TextField
+                        label=""
+                        variant="outlined"
+                        size="small"
+                        select
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        SelectProps={{ native: true }}
+                        value={b.driver || ''}
+                        onChange={(e) => handleDriverChange(b.id, e.target.value)}
+                      >
+                        <option value="">-- Select Driver --</option>
+                        {getUsers()
+                          .filter((u) => u.role === "Driver")
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((driver) => (
+                            <option key={driver.email} value={driver.name}>
+                              {driver.name}
+                            </option>
+                          ))}
+                      </TextField>
+
+                      <TextField
+                        label="Hotel/Agency Price (€)"
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        value={b.priceHotel || ''}
+                        onChange={(e) =>
+                          setBookings((prev) =>
+                            prev.map((bk) =>
+                              bk.id === b.id ? { ...bk, priceHotel: e.target.value } : bk
+                            )
+                          )
+                        }
+                      />
+
+                      <TextField
+                        label="Driver Price (€)"
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        value={b.priceDriver || ''}
+                        onChange={(e) =>
+                          setBookings((prev) =>
+                            prev.map((bk) =>
+                              bk.id === b.id ? { ...bk, priceDriver: e.target.value } : bk
+                            )
+                          )
+                        }
+                      />
+                    </>
                   )}
 
                   {status !== 'cancelled' && canCancel && (

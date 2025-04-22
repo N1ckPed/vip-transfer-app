@@ -12,6 +12,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const isHotel = selectedUser?.role === "Hotel";
   const isAgency = selectedUser?.role === "Travel Agency";
   const [bookingType, setBookingType] = useState("Arrival");
+
   const [date, setDate] = useState("");
   const [pickupHour, setPickupHour] = useState("00");
   const [pickupMinute, setPickupMinute] = useState("00");
@@ -21,8 +22,8 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
   const [flightNumber, setFlightNumber] = useState("");
-  const [carType, setCarType] = useState("Taxi");
-  const [adults, setAdults] = useState(1);
+  const [carType, setCarType] = useState("");
+  const [adults, setAdults] = useState(0);
   const [kids, setKids] = useState(0);
   const [babies, setBabies] = useState(0);
   const [customerName, setCustomerName] = useState("");
@@ -30,7 +31,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedRoute, setSelectedRoute] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Clients Directly");
+  const [paymentMethod, setPaymentMethod] = useState("");
 
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
   const minutes = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
@@ -47,13 +48,41 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
     e.preventDefault();
     const pickupTime = `${pickupHour}:${pickupMinute}`;
     const flightTime = `${flightHour}:${flightMinute}`;
+    const assignedUser = isAdmin ? assignableUsers.find((u) => u.id === Number(selectedUserId)) : currentUser;
 
-    const assignedUser = isAdmin
-      ? assignableUsers.find((u) => u.id === Number(selectedUserId))
-      : currentUser;
+    if (isHotel) {
+      if (!customerName.trim() || !phoneNumber.trim() || !date || !pickupTime || !carType || !paymentMethod || adults === 0) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      const isArrival = bookingType === "Arrival";
+      const isDeparture = bookingType === "Departure";
+
+      if ((isArrival || isDeparture) && !flightNumber.trim()) {
+        alert("Flight number is required for arrivals or departures.");
+        return;
+      }
+
+      if (isDeparture && !flightTime) {
+        alert("Flight time is required for departures.");
+        return;
+      }
+
+      if (paymentMethod === "") {
+        alert("Please select a payment method.");
+        return;
+      }
+    } 
+    
+    if (isAgency) {
+      if (!customerName.trim() || !phoneNumber.trim() || !date || !pickupTime || !carType || adults === 0) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+    }
 
     const bookingData = {
-      bookingType,
       date,
       pickupTime,
       flightTime,
@@ -75,29 +104,11 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
     console.log("✅ Booking submitted:", bookingData);
     if (typeof onSubmit === "function") onSubmit(bookingData);
   };
+
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 bg-white rounded-2xl shadow-md">
       <h2 className="text-xl font-semibold mb-4">Create Booking</h2>
 
-      {isAdmin && (
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Assign to User</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={selectedUserId || ""}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-          >
-            <option value="">-- Select a User --</option>
-            {[...assignableUsers]
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.role})
-                </option>
-              ))}
-          </select>
-        </div>
-      )}
 
       {isHotel && (
         <div className="mb-4">
@@ -119,11 +130,31 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         </div>
       )}
 
+      {isAdmin && (
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Assign to User</label>
+          <select
+            className="w-full p-2 border border rounded"
+            value={selectedUserId || ""}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+          >
+            <option value="">-- Select a User --</option>
+            {[...assignableUsers]
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.role})
+                </option>
+              ))}
+          </select>
+        </div>
+      )}
+
       {isAgency && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Select Route</label>
           <select
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border border rounded"
             value={selectedRoute}
             onChange={(e) => setSelectedRoute(e.target.value)}
           >
@@ -150,7 +181,8 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
               type="text"
               value={pickupLocation}
               onChange={(e) => setPickupLocation(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border rounded"
+
               placeholder="Heraklion Airport"
             />
           </div>
@@ -166,8 +198,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           </div>
         </>
       )}
-
-      
 
       {/* Date */}
       <div className="mb-4">
@@ -192,9 +222,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
             className="p-2 border rounded"
           >
             {hours.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
+              <option key={h} value={h}>{h}</option>
             ))}
           </select>
           <span>:</span>
@@ -204,45 +232,41 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
             className="p-2 border rounded"
           >
             {minutes.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
+              <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
       </div>
 
       {/* Flight Time */}
-      <div className="mb-4">
-        <label className="block font-medium">Flight Time</label>
-        <div className="flex gap-2">
-          <select
-            value={flightHour}
-            onChange={(e) => setFlightHour(e.target.value)}
-            className="p-2 border rounded"
-          >
-            {hours.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-          <span>:</span>
-          <select
-            value={flightMinute}
-            onChange={(e) => setFlightMinute(e.target.value)}
-            className="p-2 border rounded"
-          >
-            {minutes.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+      {isHotel && bookingType === "Departure" && (
+        <div className="mb-4">
+          <label className="block font-medium">Flight Time</label>
+          <div className="flex gap-2">
+            <select
+              value={flightHour}
+              onChange={(e) => setFlightHour(e.target.value)}
+              className="p-2 border rounded"
+            >
+              {hours.map((h) => (
+                <option key={h} value={h}>{h}</option>
+              ))}
+            </select>
+            <span>:</span>
+            <select
+              value={flightMinute}
+              onChange={(e) => setFlightMinute(e.target.value)}
+              className="p-2 border rounded"
+            >
+              {minutes.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ✅ Payment Method only if Hotel user */}
+      {/* Payment Method only if Hotel user */}
       {isHotel && (
         <div className="mb-4">
           <label className="block font-medium">Payment Method</label>
@@ -251,33 +275,40 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
           >
+            <option value="">-- Choose --</option>
             <option value="Clients Directly">Clients Directly</option>
             <option value="Accounting Office">Accounting Office</option>
           </select>
         </div>
       )}
 
-      {/* Flight number & room */}
-      <div className="mb-4">
-        <label className="block font-medium">Flight Number</label>
-        <input
-          type="text"
-          value={flightNumber}
-          onChange={(e) => setFlightNumber(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="e.g. GR1234"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block font-medium">Room Number</label>
-        <input
-          type="text"
-          value={roomNumber}
-          onChange={(e) => setRoomNumber(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="e.g. 301"
-        />
-      </div>
+      {/* Flight number */}
+      {isHotel && (bookingType === "Arrival" || bookingType === "Departure") && (
+        <div className="mb-4">
+          <label className="block font-medium">Flight Number</label>
+          <input
+            type="text"
+            value={flightNumber}
+            onChange={(e) => setFlightNumber(e.target.value)}
+            className="w-full p-2 border rounded"
+            placeholder="e.g. GR1234"
+          />
+        </div>
+      )}
+
+      {/* Room Number */}
+      {isHotel && (
+        <div className="mb-4">
+          <label className="block font-medium">Room Number (Optional)</label>
+          <input
+            type="text"
+            value={roomNumber}
+            onChange={(e) => setRoomNumber(e.target.value)}
+            className="w-full p-2 border rounded bg-gray-100"
+            placeholder="e.g. 301"
+          />
+        </div>
+      )}
 
       {/* Car type */}
       <div className="mb-4">
@@ -287,6 +318,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           onChange={(e) => setCarType(e.target.value)}
           className="w-full p-2 border rounded"
         >
+          <option value="">-- Choose --</option>
           <option value="Taxi">Taxi</option>
           <option value="Van">Van</option>
           <option value="Sedan">Sedan</option>
@@ -295,7 +327,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
 
       {/* Passengers */}
       <div className="mb-4">
-        <label className="block font-medium">Passengers</label>
+        <label className="mb-1 block font-medium">Passengers</label>
         <div className="flex gap-4">
           <div>
             <label className="text-sm">Adults</label>
@@ -304,7 +336,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
               min="0"
               value={adults}
               onChange={(e) => setAdults(Number(e.target.value))}
-              className="w-20 p-2 border rounded"
+              className="ml-2 w-14 p-2 border rounded"
             />
           </div>
           <div>
@@ -314,7 +346,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
               min="0"
               value={kids}
               onChange={(e) => setKids(Number(e.target.value))}
-              className="w-20 p-2 border rounded"
+              className="ml-2 w-14 p-2 border rounded"
             />
           </div>
           <div>
@@ -324,7 +356,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
               min="0"
               value={babies}
               onChange={(e) => setBabies(Number(e.target.value))}
-              className="w-20 p-2 border rounded"
+              className="ml-2 w-14 p-2 border rounded"
             />
           </div>
         </div>
@@ -346,7 +378,7 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         <div className="flex gap-2">
           <input
             type="text"
-            className="w-24 p-2 border rounded"
+            className="w-16 p-2 border rounded"
             value={countryCode}
             onChange={(e) => setCountryCode(e.target.value)}
             placeholder="+30"
@@ -360,7 +392,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
           />
         </div>
       </div>
-
 
       {/* Notes */}
       <div className="mb-4">

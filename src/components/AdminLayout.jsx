@@ -3,6 +3,7 @@ import AdminCalendar from "./AdminCalendar";
 import BookingForm from "./BookingForm";
 import UsersPage from "./UsersPage";
 import BookingList from "./BookingList";
+import ExportPanel from "./ExportPanel";
 
 export default function AdminLayout({
   currentUser,
@@ -21,7 +22,7 @@ export default function AdminLayout({
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 bg-">
         <h2 className="text-2xl font-bold">Admin Dashboard</h2>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600">
@@ -37,7 +38,7 @@ export default function AdminLayout({
       </div>
 
       {/* Navigation */}
-      <nav className="flex gap-4 mb-6 relative">
+      <nav className="flex gap-4 mb-6 relative flex-wrap">
         <button
           onClick={() => setActiveTab("calendar")}
           className={`px-4 py-2 rounded ${
@@ -94,6 +95,17 @@ export default function AdminLayout({
         >
           Users
         </button>
+
+        <button
+          onClick={() => setActiveTab("reports")}
+          className={`px-4 py-2 rounded ${
+            activeTab === "reports"
+              ? "bg-blue-600 text-white"
+              : "bg-white border"
+          }`}
+        >
+          Reports
+        </button>
       </nav>
 
       {/* Content */}
@@ -120,6 +132,8 @@ export default function AdminLayout({
         )}
 
         {activeTab === "users" && <UsersPage />}
+
+        {activeTab === "reports" && <ExportPanel bookings={bookings} />}
       </div>
     </div>
   );

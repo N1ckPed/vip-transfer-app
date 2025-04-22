@@ -74,7 +74,6 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
         return;
       }
     } 
-    
     if (isAgency) {
       if (!customerName.trim() || !phoneNumber.trim() || !date || !pickupTime || !carType || adults === 0) {
         alert("Please fill in all required fields.");

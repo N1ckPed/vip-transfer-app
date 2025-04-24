@@ -95,9 +95,10 @@ export default function BookingForm({ onSubmit, currentUser, isAdmin }) {
       phone: `${countryCode} ${phoneNumber}`,
       notes,
       route: selectedRoute || null,
-      paymentMethod: isHotel ? paymentMethod : null,
+      paymentMethod: isHotel ? paymentMethod : '',
       hotel: assignedUser?.name || "Unknown",
       userRole: assignedUser?.role || "Unknown",
+      status: 'upcoming'
     };
 
     console.log("✅ Booking submitted:", bookingData);

@@ -57,9 +57,9 @@ function App() {
       userRole: currentUser.role === 'admin' && data.userRole
         ? data.userRole
         : currentUser.role,
-      priceHotel: data.priceHotel || null,
-      priceDriver: data.priceDriver || null,
-      driver: data.driver || null,
+      priceHotel: data.priceHotel || 0,
+      priceDriver: data.priceDriver || 0,
+      driver: data.driver || "-",
     };
 
     setBookings((prev) => {
@@ -80,6 +80,7 @@ function App() {
         const created = new Date(b.createdAt);
         const diffMinutes = (now - created) / 60000;
         if (b.id === id && (currentUser.role === 'admin' || diffMinutes <= 30)) {
+            b.status = 'cancelled'
           return { ...b, status: 'cancelled' };
         }
         return b;

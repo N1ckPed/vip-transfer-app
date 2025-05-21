@@ -1,6 +1,7 @@
 # VIP Transfer Booking Web App
 
 A web application designed for VIP transfer bookings, allowing users to schedule and manage luxury transportation services.
+> ⚠️ **Notice**: This project is no longer maintained and remains publicly available for reference and portfolio purposes only.
 
 ## 🚀 Features
 

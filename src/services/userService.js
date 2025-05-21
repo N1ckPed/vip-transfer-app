@@ -11,7 +11,7 @@ export function getUsers() {
       role: "admin",
       name: "Admin",
       email: "admin@vip.com",
-      password: "admin123"
+      password: "123"
     }];
     localStorage.setItem(USERS_KEY, JSON.stringify(defaultAdmin));
     return defaultAdmin;

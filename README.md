@@ -22,12 +22,15 @@ A web application designed for VIP transfer bookings, allowing users to schedule
    git clone https://github.com/N1ckPed/vip-transfer-app.git
    
 2. Navigate to the project directory:
+   ```bash
    cd vip-transfer-app
    
 3. Install dependencies:
+   ```bash
    npm install
 
-5. Start the development server:
+4. Start the development server:
+   ```bash
    npm start
 
 📄 License

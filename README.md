@@ -31,7 +31,8 @@ A web application designed for VIP transfer bookings, allowing users to schedule
 
 4. Start the development server:
    ```bash
-   npm start
+   npm run dev
+   Then open your browser at http://localhost:5173
 
 ## 📄 License
 This project is licensed under the MIT License.

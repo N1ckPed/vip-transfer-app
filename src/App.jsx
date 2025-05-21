@@ -16,6 +16,7 @@ import {
   TextField
 } from '@mui/material';
 import { getBookings, saveBookings } from './services/dataService';
+import { getUsers } from './services/userService';
 
 function App() {
   const [bookings, setBookings] = useState([]);
@@ -39,34 +40,38 @@ function App() {
     setCurrentUser(user);
   };
 
-const handleBooking = (data) => {
-  const now = new Date();
-  const datetime = new Date(`${data.date}T${data.pickupTime}`);
-  const newBooking = {
-  ...data,
-  id: Date.now(),
-  datetime: datetime.toISOString(),
-  createdAt: now.toISOString(),
-  hotel: currentUser.role === 'admin' ? 'Admin'
-        : currentUser.role === 'Hotel' || currentUser.role === 'Travel Agency'
-          ? currentUser.name
-          : 'Unknown',
-  userRole: currentUser.role,
-};
+  const handleBooking = (data) => {
+    const now = new Date();
+    const datetime = new Date(`${data.date}T${data.pickupTime}`);
+    const refNo = `${Date.now()}`;
 
+    const newBooking = {
+      ...data,
+      id: Date.now(),
+      refNo, // ✅ Unique reference number
+      datetime: datetime.toISOString(),
+      createdAt: now.toISOString(),
+      hotel: currentUser.role === 'admin' && data.hotel
+        ? data.hotel
+        : currentUser.name,
+      userRole: currentUser.role === 'admin' && data.userRole
+        ? data.userRole
+        : currentUser.role,
+      priceHotel: data.priceHotel || 0,
+      priceDriver: data.priceDriver || 0,
+      driver: data.driver || "-",
+    };
 
-  setBookings((prev) => {
-    const updated = [...prev, newBooking];
-    console.log("📘 Updated Bookings:", updated);
-    saveBookings(updated);
-    return updated;
-  });
+    setBookings((prev) => {
+      const updated = [...prev, newBooking];
+      console.log("📘 Updated Bookings:", updated);
+      saveBookings(updated);
+      return updated;
+    });
 
-  setShowSuccess(true);
-  setTimeout(() => setShowSuccess(false), 5000);
-};
-
-
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 5000);
+  };
 
   const handleCancelBooking = (id) => {
     const now = new Date();
@@ -75,6 +80,7 @@ const handleBooking = (data) => {
         const created = new Date(b.createdAt);
         const diffMinutes = (now - created) / 60000;
         if (b.id === id && (currentUser.role === 'admin' || diffMinutes <= 30)) {
+            b.status = 'cancelled'
           return { ...b, status: 'cancelled' };
         }
         return b;
@@ -97,10 +103,11 @@ const handleBooking = (data) => {
 
     doc.setFontSize(12);
     const lines = [
+      `Ref. No: ${booking.refNo || "—"}`,
       `Name: ${booking.name}`,
       `Hotel: ${booking.hotel}`,
-      `Pickup: ${booking.pickup}`,
-      `Drop-off: ${booking.dropoff}`,
+      `Pickup: ${booking.pickupLocation}`,
+      `Drop-off: ${booking.dropoffLocation}`,
       `Date: ${new Date(booking.datetime).toLocaleDateString()}`,
       `Time: ${new Date(booking.datetime).toLocaleTimeString()}`,
       `Vehicle: ${booking.vehicle}`,
@@ -126,10 +133,9 @@ const handleBooking = (data) => {
   }
 
   const isAdmin = currentUser.role === 'admin';
-const visibleBookings = isAdmin
-  ? bookings
-  : bookings.filter(b => b.hotel === currentUser.name);
-
+  const visibleBookings = isAdmin
+    ? bookings
+    : bookings.filter(b => b.hotel === currentUser.name);
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white rounded shadow mt-8">
@@ -171,19 +177,21 @@ const visibleBookings = isAdmin
             </div>
           </div>
 
-          <BookingForm onSubmit={handleBooking} isAdmin={false} />
+          <BookingForm
+            onSubmit={handleBooking}
+            isAdmin={isAdmin}
+            currentUser={currentUser}
+          />
 
           <div className="mt-12">
-  {console.log("📘 Visible Bookings in Admin:", visibleBookings)}
-  <AdminCalendar
-    bookings={visibleBookings}
-    onEventClick={(booking) => {
-      setSelectedDate(new Date(booking.datetime));
-      setShowModal(true);
-    }}
-  />
-</div>
-
+            <AdminCalendar
+              bookings={visibleBookings}
+              onEventClick={(booking) => {
+                setSelectedDate(new Date(booking.datetime));
+                setShowModal(true);
+              }}
+            />
+          </div>
         </>
       )}
 
@@ -204,6 +212,10 @@ const visibleBookings = isAdmin
             return (
               <Card key={b.id} variant="outlined" sx={{ mb: 2 }}>
                 <CardContent>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Ref. No:</strong> {b.refNo || "—"}
+                  </Typography>
+
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                     <Typography variant="body1"><strong>Status:</strong> {status}</Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -212,28 +224,88 @@ const visibleBookings = isAdmin
                   </Stack>
 
                   <Typography variant="body2"><strong>Name:</strong> {b.name}</Typography>
-		{isAdmin && (
-			<Typography variant="body2">
-			<strong>{b.userRole === 'Travel Agency' ? 'Travel Agency:' : 'Hotel:'}</strong> {b.hotel}
-		</Typography>
-		)}
+                  {isAdmin && (
+                    <Typography variant="body2">
+                      <strong>{b.userRole === 'Travel Agency' ? 'Travel Agency:' : 'Hotel:'}</strong> {b.hotel}
+                    </Typography>
+                  )}
+                  {b.userRole === "Hotel" && b.paymentMethod && (
+                    <Typography variant="body2">
+                      <strong>Payment Method:</strong> {b.paymentMethod}
+                    </Typography>
+                  )}
 
+                  {b.userRole === "Travel Agency" ? (
+                    <Typography variant="body2">
+                      <strong>Route:</strong> {b.route || "—"}
+                    </Typography>
+                  ) : (
+                    <>
+                      <Typography variant="body2"><strong>Pickup Location:</strong> {b.pickupLocation}</Typography>
+                      <Typography variant="body2"><strong>Drop-off Location:</strong> {b.dropoffLocation}</Typography>
+                    </>
+                  )}
 
-
-                  <Typography variant="body2"><strong>Pickup Location:</strong> {b.pickupLocation}</Typography>
-                  <Typography variant="body2"><strong>Drop-off Location:</strong> {b.dropoffLocation}</Typography>
-				  <Typography variant="body2"><strong>Pickup Time:</strong> {b.pickupTime}</Typography>
+                  <Typography variant="body2"><strong>Pickup Time:</strong> {b.pickupTime}</Typography>
 
                   {isAdmin && (
-                    <TextField
-                      label="Driver"
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                      sx={{ mt: 2 }}
-                      value={b.driver || ''}
-                      onChange={(e) => handleDriverChange(b.id, e.target.value)}
-                    />
+                    <>
+                      <TextField
+                        label=""
+                        variant="outlined"
+                        size="small"
+                        select
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        SelectProps={{ native: true }}
+                        value={b.driver || ''}
+                        onChange={(e) => handleDriverChange(b.id, e.target.value)}
+                      >
+                        <option value="">-- Select Driver --</option>
+                        {getUsers()
+                          .filter((u) => u.role === "Driver")
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((driver) => (
+                            <option key={driver.email} value={driver.name}>
+                              {driver.name}
+                            </option>
+                          ))}
+                      </TextField>
+
+                      <TextField
+                        label="Hotel/Agency Price (€)"
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        value={b.priceHotel || ''}
+                        onChange={(e) =>
+                          setBookings((prev) =>
+                            prev.map((bk) =>
+                              bk.id === b.id ? { ...bk, priceHotel: e.target.value } : bk
+                            )
+                          )
+                        }
+                      />
+
+                      <TextField
+                        label="Driver Price (€)"
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        value={b.priceDriver || ''}
+                        onChange={(e) =>
+                          setBookings((prev) =>
+                            prev.map((bk) =>
+                              bk.id === b.id ? { ...bk, priceDriver: e.target.value } : bk
+                            )
+                          )
+                        }
+                      />
+                    </>
                   )}
 
                   {status !== 'cancelled' && canCancel && (

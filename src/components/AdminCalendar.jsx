@@ -1,4 +1,3 @@
-// src/components/AdminCalendar.jsx
 import React from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import format from 'date-fns/format';
@@ -19,26 +18,28 @@ const localizer = dateFnsLocalizer({
 });
 
 const AdminCalendar = ({ bookings, onEventClick }) => {
+  const [currentDate, setCurrentDate] = React.useState(new Date());
+  const [currentView, setCurrentView] = React.useState('month');
+
   const getStatus = (datetime) => {
     const now = new Date();
     const bookingTime = new Date(datetime);
     return bookingTime > now ? 'upcoming' : 'done';
   };
 
-const events = bookings
-  .filter((b) => b.datetime && !isNaN(Date.parse(b.datetime)))
-  .map((b) => {
-    const start = new Date(b.datetime);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-    return {
-      title: `${b.vehicle || "Taxi"} - ${b.name || "No Name"}`,
-      start,
-      end,
-      status: b.status || getStatus(start),
-      resource: b,
-    };
-  });
-
+  const events = bookings
+    .filter((b) => b.datetime && !isNaN(Date.parse(b.datetime)))
+    .map((b) => {
+      const start = new Date(b.datetime);
+      const end = new Date(start.getTime() + 60 * 60 * 1000);
+      return {
+        title: `${b.vehicle || "Taxi"} - ${b.name || "No Name"}`,
+        start,
+        end,
+        status: b.status || getStatus(start),
+        resource: b,
+      };
+    });
 
   const eventStyleGetter = (event) => {
     let bgColor = '#ccc';
@@ -58,23 +59,27 @@ const events = bookings
     };
   };
 
-  console.log("📅 Events for calendar rendering:", events); // <- LOG THIS TO CONFIRM
-
   return (
     <div className="p-4 bg-white shadow rounded overflow-x-auto">
-      <h2 className="text-xl font-semibold mb-4 text-center">📅 Admin Booking Calendar</h2>
+      <h2 className="text-xl font-semibold mb-4 text-center">📅 Booking Calendar</h2>
       <div className="min-w-[300px] md:min-w-full">
         <Calendar
           localizer={localizer}
+          date={currentDate}
+          onNavigate={(date) => setCurrentDate(date)}
+          view={currentView}
+          onView={(view) => setCurrentView(view)}
+          toolbar={true}
+          showMultiDayTimes={true}
           events={events}
           startAccessor="start"
           endAccessor="end"
           eventPropGetter={eventStyleGetter}
           onSelectEvent={(event) => onEventClick(event.resource)}
-          popup
-          views={['day', 'week', 'month']}
+          views={['month', 'week', 'day']}
           defaultView="month"
           style={{ height: 500 }}
+          popup
         />
       </div>
     </div>

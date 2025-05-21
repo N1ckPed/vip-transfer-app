@@ -33,8 +33,8 @@ A web application designed for VIP transfer bookings, allowing users to schedule
    ```bash
    npm start
 
-📄 License
+## 📄 License
 This project is licensed under the MIT License.
 
-📞 Contact
+## 📞 Contact
 For inquiries or support, please contact nick.r.ped@gmail.com.

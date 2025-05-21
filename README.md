@@ -23,7 +23,6 @@ A web application designed for VIP transfer bookings, allowing users to schedule
 - **jsPDF** – Generate downloadable PDF vouchers
 - **ESLint** – Code linting for consistency and quality
 
-
 ## 📦 Installation
 
 1. Clone the repository:
@@ -43,22 +42,6 @@ A web application designed for VIP transfer bookings, allowing users to schedule
    npm run dev
    ```
    Then open your browser at http://localhost:5173
-
-## 📄 Project Structure
-vip-transfer-app/
-│
-├── src/
-│   ├── components/        # UI components
-│   ├── pages/             # Page-level components (e.g., calendar, booking)
-│   ├── assets/            # Icons, images, etc.
-│   ├── locales/           # i18n language files
-│   └── utils/             # Helpers and constants
-│
-├── public/                # Static files
-├── tailwind.config.js     # TailwindCSS config
-├── vite.config.js         # Vite project config
-└── README.md              # Project documentation
-
 
 ## 📄 License
 This project is licensed under the MIT License.

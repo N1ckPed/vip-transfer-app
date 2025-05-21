@@ -43,6 +43,23 @@ A web application designed for VIP transfer bookings, allowing users to schedule
    ```
    Then open your browser at http://localhost:5173
 
+## 🔐 User Roles
+- Admin
+   - View and manage all bookings
+   - Create/edit users and routes
+   - Export reports and vouchers
+
+- Hotel
+   - Submit bookings with custom pickup/drop-off info
+   - View and manage only their bookings
+
+- Travel Agency
+   - Use smart route selector (no pickup/drop-off)
+   - View and manage only their bookings
+
+- Driver
+   - Only stored for assignment (non-login users)
+
 ## 📄 License
 This project is licensed under the MIT License.
 

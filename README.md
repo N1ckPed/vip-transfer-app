@@ -59,6 +59,10 @@ A web application designed for VIP transfer bookings, allowing users to schedule
 
 - Driver
    - Only stored for assignment (non-login users)
+## 📝 Notes
+- No sensitive credentials or APIs are stored in this repository.
+- Booking data and user state are currently managed in memory (demo/demo users).
+- Admin tools include CSV and PDF export, with cost and driver assignment breakdowns.
 
 ## 📄 License
 This project is licensed under the MIT License.

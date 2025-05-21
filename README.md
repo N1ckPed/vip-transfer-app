@@ -20,3 +20,18 @@ A web application designed for VIP transfer bookings, allowing users to schedule
 1. Clone the repository:
    ```bash
    git clone https://github.com/N1ckPed/vip-transfer-app.git
+   
+2. Navigate to the project directory:
+   cd vip-transfer-app
+   
+3. Install dependencies:
+   npm install
+
+5. Start the development server:
+   npm start
+
+📄 License
+This project is licensed under the MIT License.
+
+📞 Contact
+For inquiries or support, please contact nick.r.ped@gmail.com.
